@@ -25,7 +25,7 @@ import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-// import TableView from "../TableView/Table";
+import TableView from "../TableView/Table";
 import { useNavigate } from "react-router-dom";
 import ReactFlags from "react-flags-select";
 import { cities } from "./cities";
@@ -394,7 +394,7 @@ const AllEmployees = () => {
             >
               {/* list and grid view */}
               {view
-                ? datas && <Table data={datas} />
+                ? datas && <TableView data={datas} />
                 : datas &&
                   datas.map((p, i) => {
                     return (
