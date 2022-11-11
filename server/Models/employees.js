@@ -14,7 +14,8 @@ const EmployeesSchema = new mongoose.Schema({
         require:true
      },
      dob:{
-      type:Date
+      type:Date,
+      default:""
   },
   cnic:{
    type:Number,
@@ -220,7 +221,7 @@ const EmployeesSchema = new mongoose.Schema({
      }, 
      ERCode:{
       type:Number,
-      default:0
+      default:""
      },    
     
      isAdmin:{
