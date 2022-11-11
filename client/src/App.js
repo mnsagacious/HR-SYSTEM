@@ -8,7 +8,7 @@ import EmpAttendance from "./Components/Pages/EmpAttendance/EmpAttendance";
 import EmpHolidays from "./Components/Pages/EmpHolidays/EmpHolidays";
 import AllEmployees from "./Components/Employee Data/All Employees/AllEmployees";
 import Calendar from "./Components/Calendar/Calendar";
-import EmpDetails from "./Components/Employee Data/Emp Detail/EmpDetails";
+import EmpDetails from "./Components/Employee Data/Emp Details 2/EmpDetails";
 import CalendarDetails from "./Components/Calendar/CalendarDetails";
 import { Context } from "./Context/Context";
 import { useContext } from "react";
