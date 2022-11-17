@@ -1,10 +1,9 @@
 const dotenv = require('dotenv')
 const mongoose = require("mongoose");
 const path = require("path")
-// const url = "mongodb://localhost:27017/TestHR"
-const url = "mongodb://localhost:27017/Attendance"
+const url = "mongodb://localhost:27017/TestHR"
+// const url = "mongodb://localhost:27017/Attendance"
 //env
-
 
 
 //Mongo Connection

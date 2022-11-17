@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Context } from "./../../Context/Context";
 import { useContext } from "react";
+import companyLogo from '../../Assets/company logo/Sagacious-Systems-Logo.png'
 const Sidebar = () => {
   const context = useContext(Context);
 
@@ -21,18 +22,20 @@ const Sidebar = () => {
       <aside className="main-sidebar  elevation-4  " style={{ position: "fixed", backgroundColor: "#00695c", color: "#fff" }}>
         {/* <!-- Brand Logo --> */}
         <Link to="/dashboard" className="brand-link">
-          <img src={logo} alt="AdminLTE Logo" className="brand-image img-circle elevation-3" style={{ opacity: .8 }} />
-          <span className="brand-text font-weight-light text-white">Human Resource</span>
+          <div className='d-flex align-items-center justify-content-center  elevation-1 rounded  p-2 ' style={{background:"#ffff"}}>
+              <img src={companyLogo} className='brand-image' style={{width:'10vw'}}/>
+          </div>
+        
+          {/* <img src={companyLogo} alt="AdminLTE Logo" className="brand-image img-circle elevation-3" style={{ opacity: .8 }} />
+          <span className="brand-text font-weight-light text-white">Sagacious Systems</span> */}
         </Link>
         {/* <!-- Sidebar --> */}
         <div className="sidebar">
           {/* <!-- Sidebar user (optional) --> */}
-          <div className="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div className="image">
-              {/* <img src="" className="img-circle elevation-2" alt="User Image" /> */}
-            </div>
-            <div className="info text-decoration-none border-bottom-0">
-              <Link to="/dashboard" className="d-block text-white">Sagacious Systems</Link>
+          <div className="user-panel mt-3 pb-1 mb-2 d-flex">
+
+            <div className="info text-decoration-none border-bottom-0 w-100">
+              <Link to="/dashboard" className="d-block text-white w-100 text-center   font-weight-bold text-lg">Human Resource</Link>
             </div>
           </div>
           {/* <!-- SidebarSearch Form --> */}

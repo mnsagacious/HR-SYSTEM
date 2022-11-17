@@ -12,10 +12,11 @@ import axios from 'axios';
 import { useState ,useEffect } from 'react';
 import { NotificationContainer, NotificationManager } from 'react-notifications';
 import { useNavigate } from "react-router-dom";
-
-const EmpCard = ({ data }) => {
+import { Autocomplete } from "@mui/material";
+const EmpCard = ({ data  }) => {
     const navigate = useNavigate();
     console.log("data",data)
+   
 
     //userStates
     const [firstname,setfirstname] = useState(data.firstname);
@@ -96,10 +97,6 @@ NotificationManager.error('Failed to update')
      
 
 
-
- 
-
-
    //more option button code
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -137,17 +134,25 @@ NotificationManager.error('Failed to update')
 
 
 
-      <Card>
+      <Card className='shadowcard'>
+      
 
-
-      <div style={{display:"flex",justifyContent:"end"}}><IconButton aria-label="more"
+      <div style={{display:"flex",width:"100%",alignItems:"center",justifyContent:"space-between"}}>
+       <div className='px-2'>      
+        <span class="badge badge-success">Active</span>      
+       </div>
+      <div>
+      <IconButton aria-label="more"
           id="long-button"
           aria-controls={open ? 'long-menu' : undefined}
           aria-expanded={open ? 'true' : undefined}
           aria-haspopup="true"
           onClick={handleClick} style={{color:"black"}}>
              <MoreVertIcon />
-        </IconButton></div>
+        </IconButton>
+      </div>
+       
+        </div>
 
        
         <Menu

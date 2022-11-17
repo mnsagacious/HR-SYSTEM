@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import "./Employee.css";
 import pp from "./avatar.png";
 import { useState } from "react";
-import Card from "../Emp Card/EmpCard";
+import CardEmp from "../Emp Card/EmpCard";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-notifications/lib/notifications.css";
@@ -19,18 +19,24 @@ import {
   Row,
   Container,
   FormGroup,
+  Card,
 } from "react-bootstrap";
+
 import Table from "react-bootstrap/Table";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 // import TableView from "../TableView/Table";
+import TableView from "../TableView/Table";
 import { useNavigate } from "react-router-dom";
 import ReactFlags from "react-flags-select";
 import { cities } from "./cities";
 import DatePicker from "react-datepicker";
+import Pagination from "@mui/material/Pagination";
 import "react-datepicker/dist/react-datepicker.css";
+
+import { top100Films } from "./index";
 const moment = require("moment");
 
 const AllEmployees = () => {
@@ -40,6 +46,10 @@ const AllEmployees = () => {
   const url1 = "/auth/register";
   const [dep, setDep] = useState([]);
   const [datas, setData] = useState();
+  const [pageCount, setpageCount] = useState(0);
+  //pagination
+  const [page, setpage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   // const [modalShow, setModalShow] = React.useState(false);
   const handleClose = () => setShow(false);
   const Closechildmodal = () => setShowChildModel(false);
@@ -50,10 +60,10 @@ const AllEmployees = () => {
   const [childModel, setShowChildModel] = useState(false);
   const [childModel1, setShowChildModel1] = useState(false);
   const [show, setShow] = useState(false);
-  const [birth,setbirth] = useState("")
+  const [birth, setbirth] = useState("");
   const [testUpdate, setTestUpdate] = useState(false);
-
   const [list, setlist] = useState(false);
+  const [suggestion, setsuggestion] = useState([]);
   //for profile pic
   const [file, setfile] = useState();
   //Employee Add
@@ -83,7 +93,6 @@ const AllEmployees = () => {
     joiningdate: "",
     educationdetails: "",
     employementhistory: "",
-
     currentSalary: "",
     employementstatus: "",
     //bank information
@@ -93,7 +102,7 @@ const AllEmployees = () => {
     accountno: "",
     IBAN: "",
     branchcode: "",
-    country:"",
+    country: "",
     //degree info
   });
   //educaion details add and remove //
@@ -116,20 +125,20 @@ const AllEmployees = () => {
     end: "",
     status: "",
   });
-  const removeitem = (i) =>{
-        const temp = education;
-        temp.splice(i,1); 
-        console.log("splice",temp)
-        seteducation(temp);
-        setTestUpdate(!testUpdate)
-  }
-  const removemployement = (i) =>{
+  const removeitem = (i) => {
+    const temp = education;
+    temp.splice(i, 1);
+    console.log("splice", temp);
+    seteducation(temp);
+    setTestUpdate(!testUpdate);
+  };
+  const removemployement = (i) => {
     const temp = employement;
-    employement.splice(i,1); 
-    console.log("splice",temp)
+    employement.splice(i, 1);
+    console.log("splice", temp);
     setemployement(temp);
-    setTestUpdate(!testUpdate)
-  }
+    setTestUpdate(!testUpdate);
+  };
   const addhistory = () => {
     var empl = employement;
     empl.push({
@@ -144,7 +153,10 @@ const AllEmployees = () => {
     setemployement(empl);
     setEmp({ ...emp, employementhistory: empl });
   };
+  const suggestionhandler = (value) =>{
+     setsearchtext(value);
   
+  }
   let name, value;
   const handleinput = (e) => {
     console.log(e);
@@ -160,7 +172,7 @@ const AllEmployees = () => {
     value = e.target.value;
 
     await setdetails({
-      ...details,   
+      ...details,
       [name]: value,
     });
   };
@@ -190,7 +202,6 @@ const AllEmployees = () => {
     });
     seteducation(temp);
     setEmp({ ...emp, educationdetails: education });
-  
   };
 
   const handleempinputJoiningDate = async (e) => {
@@ -246,9 +257,9 @@ const AllEmployees = () => {
       duration: `${years}  years  ${months}  months  ${days} days`,
     });
   };
-   ///education & employement details code end;
+  ///education & employement details code end;
 
-   //list and grid view start
+  //list and grid view start
   const [view, setView] = useState(false);
   const handleChange = (event, nextView) => {
     setView(!view);
@@ -260,23 +271,47 @@ const AllEmployees = () => {
   //   const handleChange = () => {
   //     setlist(!list)
   //   };
+
+  //search itegration api call
+  const search = "/employees/autocomplete";
+  const [searchresult, setresult] = useState([]);
+  const [sugestion, setsugestion] = useState([]);
+  const [searchtext, setsearchtext] = useState("");
+  const searchResults = async () => {
+    try {
+      const res = await axios.get(`${search}?search=${searchtext}`);
+      const data = res.data.results;
+      await setsugestion(res.data.results);
+      console.log("searchresultsfromapi", data);
+
+      console.log("suggested", sugestion);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const searchhandler = (text) => {
+    setsearchtext(text);
+  };
+
+  console.log("suggested2", sugestion);
+
   //submitting values of user
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (file) {
-      const data =new FormData();
+      const data = new FormData();
       const filename = Date.now() + file.name;
       data.append("name", filename);
       data.append("file", file);
       emp.profilepic = filename;
       try {
-        await axios.post("/upload",data);
+        await axios.post("/upload", data);
       } catch (err) {
         console.log(err);
         NotificationManager.error("Pic not Uploaded");
       }
     }
-   
+
     try {
       const res = await axios.post(url1, emp);
       console.log(res);
@@ -290,10 +325,11 @@ const AllEmployees = () => {
   //fetching employees data
   const fetchData = async () => {
     try {
-      const res = await axios.get(url);
+      const res = await axios.get(`${url}?page=${page}&limit=8`);
       console.log(res.data);
       const data = res.data.employees;
       setData(data);
+      setpageCount(res.data.counted);
     } catch (error) {
       console.log(error);
       NotificationManager.error("Api Error 404");
@@ -313,7 +349,8 @@ const AllEmployees = () => {
   useEffect(() => {
     fetchData();
     getEmp();
-  }, []);
+    searchResults();
+  }, [page, searchtext]);
   const PF = "http://localhost:5002/images/";
   return (
     <>
@@ -392,22 +429,65 @@ const AllEmployees = () => {
               className="row  gy-3  vertical-scrollable"
               style={{ display: "flex", flexWrap: "wrap" }}
             >
+              <Container className="py-3">
+                <Form.Control
+                  type="text"
+                  value={searchtext}
+                  onChange={(e) => searchhandler(e.target.value)}
+                ></Form.Control>
+                <div className={searchtext.length > 0 ? "searchstyle":""} id='style-3'>
+                  {searchtext.length > 0
+                    ? sugestion.map((d) => {
+                        return (
+                          <div>
+                            <p
+                              key={d._id}
+                              className={searchtext.length > 0 ? "searchautocomplete":""}
+                             onClick={()=>suggestionhandler(`${d.firstname} ${d.lastname}`)}>{`${d.firstname} ${d.lastname}`}</p>
+                          </div>
+                        );
+                      })
+                    : ""}
+                </div>
+              </Container>
+
+              {!view
+                ? datas && (
+                    <>
+                      {" "}
+                      <Card className="py-4 px-4 shadowcard1">
+                        <Row>
+                          {datas.map((p, i) => {
+                            return (
+                              <>
+                                <div
+                                  className="col-md-4 col-sm-6 col-12 col-lg-4 col-xl-3"
+                                  key={i}
+                                >
+                                  <div>
+                                    <CardEmp data={p} />
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })}
+                          <Card.Footer className="d-flex justify-content-end">
+                            <Pagination
+                              count={parseInt(pageCount / 8)}
+                              variant="outlined"
+                              shape="rounded"
+                              onChange={(e, p) => {
+                                console.log("pagination", p);
+                                setpage(p);
+                              }}
+                            />
+                          </Card.Footer>
+                        </Row>
+                      </Card>
+                    </>
+                  )
+                : datas && <TableView data={datas} pageCount={pageCount} />}
               {/* list and grid view */}
-              {view
-                ? datas && <Table data={datas} />
-                : datas &&
-                  datas.map((p, i) => {
-                    return (
-                      <div
-                        className="col-md-4 col-sm-6 col-12 col-lg-4 col-xl-3"
-                        key={i}
-                      >
-                        <div>
-                          <Card data={p} />
-                        </div>
-                      </div>
-                    );
-                  })}
             </div>
           </div>
         </section>
@@ -419,7 +499,6 @@ const AllEmployees = () => {
             show={show}
             onHide={handleClose}
             dialogClassName="my-modal"
-            
           >
             <Modal.Header closeButton>
               <Modal.Title
@@ -432,109 +511,109 @@ const AllEmployees = () => {
             <Modal.Body>
               <Container fluid>
                 <Form onSubmit={handleSubmit}>
-                <Form.Group>
-                <Row>
-                  <div className="py-3">
-                    <h4>Personal Information</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                  </div>
-                  
-                   <div className="responsiveform d-lg-flex d-lg-flex d-md-flex justify-content-between  ">
-                   <div className="w-75" id="responsivewidth">
-                  <Col>
-                    <Row >
-                      <Col xxl="6" xl="6" lg="6" md="6">
-                        <Form.Group
-                          as={Col}
-                          controlId="formGridFirstName"
-                          className="formmargin"
-                        >
-                          <Form.Label>First Name</Form.Label>
-                          <Form.Control
-                            type="text"
-                            required
-                            name="firstname"
-                            placeholder="First Name"
-                            value={emp.firstname}
-                            onChange={handleinput}
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col xxl="6" xl="6" lg="6" md="6">
-                        <Form.Group
-                          as={Col}
-                          controlId="formGridLastName"
-                          className="formmargin"
-                        >
-                          <Form.Label>Last Name</Form.Label>
-                          <Form.Control
-                            type="text"
-                            required
-                            name="lastname"
-                            placeholder="Last Name"
-                            value={emp.lastname}
-                            onChange={handleinput}
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
+                  <Form.Group>
                     <Row>
-                      <Col xxl='6' xl='6' lg='6' md='6'>
-                        <Form.Group
-                          as={Col}
-                          controlId="formGridgender"
-                          className="formmargin"
-                        >
-                          <Form.Label>Gender</Form.Label>
-                          <Form.Select
-                            required
-                            name="gender"
-                            value={emp.gender}
-                            onChange={handleinput}
-                          >
-                            <option value="" selected hidden disabled>
-                              Please Select
-                            </option>
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col xl='6' lg="6" md="6">
-                        <Form.Group
-                          as={Col}
-                          controlId="formGridFirstName"
-                          className="formmargin"
-                        >
-                          <Form.Label>National ID </Form.Label>
-                          <Form.Control
-                            type="number"
-                            required
-                            name="cnic"
-                            placeholder="CNIC"
-                            value={emp.cnic}
-                            onChange={handleinput}
-                            //   disabled={disableFields}
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xxl='6' xl='6' lg='6'>
-                        <Form.Group
-                          as={Col}
-                          controlId="formGridLastName"
-                          className="formmargin"
-                        >
-                          <Form.Label>D-0-B</Form.Label>
-                          {/* <DatePicker
+                      <div className="py-3">
+                        <h4>Personal Information</h4>
+                        <hr
+                          style={{
+                            fontWeight: "bold",
+                            borderWidth: "2px",
+                            border: "1px solid black",
+                          }}
+                        ></hr>
+                      </div>
+
+                      <div className="responsiveform d-lg-flex d-lg-flex d-md-flex justify-content-between  ">
+                        <div className="w-75" id="responsivewidth">
+                          <Col>
+                            <Row>
+                              <Col xxl="6" xl="6" lg="6" md="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridFirstName"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>First Name</Form.Label>
+                                  <Form.Control
+                                    type="text"
+                                    required
+                                    name="firstname"
+                                    placeholder="First Name"
+                                    value={emp.firstname}
+                                    onChange={handleinput}
+                                  />
+                                </Form.Group>
+                              </Col>
+                              <Col xxl="6" xl="6" lg="6" md="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridLastName"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>Last Name</Form.Label>
+                                  <Form.Control
+                                    type="text"
+                                    required
+                                    name="lastname"
+                                    placeholder="Last Name"
+                                    value={emp.lastname}
+                                    onChange={handleinput}
+                                  />
+                                </Form.Group>
+                              </Col>
+                            </Row>
+                            <Row>
+                              <Col xxl="6" xl="6" lg="6" md="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridgender"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>Gender</Form.Label>
+                                  <Form.Select
+                                    required
+                                    name="gender"
+                                    value={emp.gender}
+                                    onChange={handleinput}
+                                  >
+                                    <option value="" selected hidden disabled>
+                                      Please Select
+                                    </option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                  </Form.Select>
+                                </Form.Group>
+                              </Col>
+                              <Col xl="6" lg="6" md="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridFirstName"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>National ID </Form.Label>
+                                  <Form.Control
+                                    type="number"
+                                    required
+                                    name="cnic"
+                                    placeholder="CNIC"
+                                    value={emp.cnic}
+                                    onChange={handleinput}
+                                    //   disabled={disableFields}
+                                  />
+                                </Form.Group>
+                              </Col>
+                            </Row>
+                            <Row>
+                              <Col xxl="6" xl="6" lg="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridLastName"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>D-0-B</Form.Label>
+                                  {/* <DatePicker
                             required
                             selected={emp.dob}
                             onChange={(date)=>{setEmp({...emp,dob:moment(date).format('dd/mm/yyyy')})}}
@@ -542,864 +621,817 @@ const AllEmployees = () => {
                             dateFormat='dd/mm/yyyy'
                             dropDownMode="select"
                           /> */}
-                          <Form.Control
-                            type="date"
-                            required
-                            placeholder="dd/mm/yyyy"
-                            name="dob"
-                            value={emp.dob}
-                            onChange={handleinput}
-                            //   disabled={disableFields}
-                          />
-                        </Form.Group>
-                      </Col>
+                                  <Form.Control
+                                    type="date"
+                                    required
+                                    placeholder="dd/mm/yyyy"
+                                    name="dob"
+                                    value={emp.dob}
+                                    onChange={handleinput}
+                                    //   disabled={disableFields}
+                                  />
+                                </Form.Group>
+                              </Col>
 
-                      <Col  xl='6' lg="6" >
-                        <Form.Group
-                          as={Col}
-                          controlId="formGridMartialStatus"
-                          className="formmargin"
+                              <Col xl="6" lg="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridMartialStatus"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>Martial Status</Form.Label>
+                                  <Form.Select
+                                    required
+                                    name="martialStatus"
+                                    placeholder="martial status.."
+                                    value={emp.martialStatus}
+                                    onChange={handleinput}
+                                    //   disabled={disableFields}
+                                  >
+                                    <option value="" selected hidden disabled>
+                                      Please Select
+                                    </option>
+                                    <option>Single</option>
+                                    <option>Married</option>
+                                    <option>Divorced</option>
+                                    <option>widow</option>
+                                  </Form.Select>
+                                </Form.Group>
+                              </Col>
+                              <Col xl="6" lg="6">
+                                <Form.Group
+                                  as={Col}
+                                  controlId="formGridLastName"
+                                  className="formmargin"
+                                >
+                                  <Form.Label>Religion</Form.Label>
+                                  <Form.Select
+                                    required
+                                    name="religion"
+                                    placeholder="Religion"
+                                    value={emp.religion}
+                                    onChange={handleinput}
+                                    //   disabled={disableFields}
+                                  >
+                                    <option value="" selected hidden disabled>
+                                      Please Select
+                                    </option>
+                                    <option>Islam</option>
+                                    <option>Christianity</option>
+                                    <option>Buddhism</option>
+                                    <option> Sikhism</option>
+                                    <option> Hinduism</option>
+                                    <option>Bahá’í</option>
+                                    <option>Confucianism</option>
+                                    <option>Jainism</option>
+                                    <option>Judaism</option>
+                                    <option>Zoroastrianism</option>
+                                    <option>Druze</option>
+                                  </Form.Select>
+                                </Form.Group>
+                              </Col>
+                            </Row>
+                          </Col>
+                        </div>
+                        <div className=" reswidth ">
+                          <Col xxl="4" xl="4" lg="4">
+                            <div style={{ width: "100%" }}>
+                              <div className="d-flex align-items-center responsiveimg">
+                                <div>
+                                  <Form
+                                    className="mb-3"
+                                    controlId="formGridProfilePic"
+                                  >
+                                    <Form.Label htmlFor="uploadpic">
+                                      {file ? (
+                                        <img
+                                          className="rounded-circle"
+                                          style={{
+                                            width: "200px",
+                                            height: "200px",
+                                          }}
+                                          src={URL.createObjectURL(file)}
+                                          alt=""
+                                        />
+                                      ) : (
+                                        <img
+                                          className="rounded-circle"
+                                          src={pp}
+                                          alt=""
+                                          style={{
+                                            width: "200px",
+                                            height: "200px",
+                                          }}
+                                        />
+                                      )}
+                                    </Form.Label>
+
+                                    <Form.Control
+                                      type="file"
+                                      name="file"
+                                      value={emp.profilepic}
+                                      style={{ display: "none" }}
+                                      id="uploadpic"
+                                      onChange={(e) =>
+                                        setfile(e.target.files[0])
+                                      }
+                                    />
+                                    <div className="w-100 text-center">
+                                      <label>Upload Picture</label>
+                                    </div>
+                                  </Form>
+                                </div>
+                              </div>
+                            </div>
+                          </Col>
+                        </div>
+                      </div>
+                    </Row>
+
+                    <Row className="py-4">
+                      <div>
+                        <h4>Contacts Details</h4>
+                        <hr
+                          style={{
+                            fontWeight: "bold",
+                            borderWidth: "2px",
+                            border: "1px solid black",
+                          }}
+                        ></hr>
+                      </div>
+                      <Row>
+                        <h5
+                          className="py-2 "
+                          style={{ fontSize: "22px", padding: "0px 19px" }}
                         >
-                          <Form.Label>Martial Status</Form.Label>
-                          <Form.Select
-                            required
-                            name="martialStatus"
-                            placeholder="martial status.."
-                            value={emp.martialStatus}
-                            onChange={handleinput}
-                            //   disabled={disableFields}
+                          Primary
+                        </h5>
+                        <Col xxl="6" xl="6" lg="6" md="6">
+                          <Form.Group
+                            as={Col}
+                            controlId="formGridphone"
+                            className="formmargin "
                           >
-                            <option value="" selected hidden disabled>
-                              Please Select
-                            </option>
-                            <option>Single</option>
-                            <option>Married</option>
-                            <option>Divorced</option>
-                            <option>widow</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col xl='6' lg='6'>
+                            <Form.Label>Phone</Form.Label>
+                            <Form.Control
+                              type="number"
+                              required
+                              name="primaryphone"
+                              placeholder="phone"
+                              value={emp.primaryphone}
+                              onChange={handleinput}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xxl="6" xl="6" lg="6" md="6">
+                          <Form.Group
+                            as={Col}
+                            controlId="formGridcompanyemail"
+                            className="formmargin "
+                          >
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                              type="email"
+                              required
+                              name="primaryemail"
+                              placeholder="email"
+                              value={emp.primaryemail}
+                              onChange={handleinput}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <h5
+                          className="py-2 "
+                          style={{ fontSize: "22px", padding: "0px 19px" }}
+                        >
+                          Secondary
+                        </h5>
+                        <Col xxl="6" xl="6" lg="6" md="6">
+                          <Form.Group
+                            as={Col}
+                            controlId="formGridcompanyemail"
+                            className="formmargin "
+                          >
+                            <Form.Label>Phone</Form.Label>
+                            <Form.Control
+                              type="number"
+                              required
+                              name="secondaryphone"
+                              placeholder="secondary phone"
+                              value={emp.secondaryphone}
+                              onChange={handleinput}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xxl="6" xl="6" lg="6" md="6">
+                          <Form.Group
+                            as={Col}
+                            controlId="formGridcompanyemail"
+                            className="formmargin "
+                          >
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                              type="email"
+                              required
+                              name="secondaryemail"
+                              placeholder="secondary Email"
+                              value={emp.secondaryemail}
+                              onChange={handleinput}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </Row>
+                    <div>
+                      <h4>Address & Region</h4>
+                      <hr
+                        style={{
+                          fontWeight: "bold",
+                          borderWidth: "2px",
+                          border: "1px solid black",
+                        }}
+                      ></hr>
+                    </div>
+                    <Col lg={12}>
+                      <Form.Group
+                        as={Col}
+                        controlId="formGridFirstName"
+                        className="formmargin"
+                      >
+                        <Form.Label>Temporary Address</Form.Label>
+                        <Form.Control
+                          type="text"
+                          required
+                          name="temporaryaddress"
+                          placeholder="complete address"
+                          value={emp.temporaryaddress}
+                          onChange={handleinput}
+                          //   disabled={disableFields}
+                        />
+                      </Form.Group>
+                    </Col>
+
+                    <Col lg={12}>
+                      <Form.Group
+                        as={Col}
+                        controlId="formGridFirstName"
+                        className="formmargin"
+                      >
+                        <Form.Label>Permanent Address</Form.Label>
+                        <Form.Control
+                          type="text"
+                          required
+                          name="permanentaddress"
+                          placeholder="complete address"
+                          value={emp.permanentaddress}
+                          onChange={handleinput}
+                          //   disabled={disableFields}
+                        />
+                      </Form.Group>
+                    </Col>
+                    {/* </Row> */}
+                    <Row>
+                      <Col>
+                        <Form.Label>City</Form.Label>
                         <Form.Group
                           as={Col}
                           controlId="formGridLastName"
                           className="formmargin"
                         >
-                          <Form.Label>Religion</Form.Label>
                           <Form.Select
                             required
-                            name="religion"
-                            placeholder="Religion"
-                            value={emp.religion}
+                            onChange={handleinput}
+                            name="city"
+                            value={emp.city}
+                          >
+                            <option value="" selected hidden disabled>
+                              Select City
+                            </option>
+                            {cities.map((d, i) => {
+                              return <option key={i}>{d}</option>;
+                            })}
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Label>Province</Form.Label>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Select
+                            required
+                            name="province"
+                            placeholder="province"
+                            value={emp.province}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          >
+                            <option value="" selected hidden disabled>
+                              Select Province
+                            </option>
+                            <option>Punjab</option>
+                            <option>Sindh</option>
+                            <option>KPK</option>
+                            <option>Gilgit Baltistan</option>
+                            <option>Islamabad(Capital Territory)</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Label>Country</Form.Label>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <ReactFlags
+                            countries={["PK"]}
+                            selected={selected}
+                            onSelect={(code) => {
+                              setSelected(code);
+                              code === "PK" && setcountry("Pakistan");
+                              setEmp({ ...emp, country: "Pakistan" });
+                            }}
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg={4} xl={4}>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Postal Code</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="postalCode"
+                            placeholder="postal code"
+                            value={emp.postalCode}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <div className="py-3">
+                        <h4>Education Information</h4>
+                        <hr
+                          style={{
+                            fontWeight: "bold",
+                            borderWidth: "2px",
+                            border: "1px solid black",
+                          }}
+                        ></hr>
+
+                        <Container>
+                          <div className="d-flex justify-content-end ">
+                            <Button
+                              onClick={() => {
+                                setShowChildModel1(true);
+                              }}
+                            >
+                              Add Education
+                            </Button>
+                          </div>
+                          <Row className="my-3">
+                            <Table striped bordered hover>
+                              <thead>
+                                <tr>
+                                  <th>#</th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Institute
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Degree
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>start</th>
+                                  <th style={{ textAlign: "center" }}>end</th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Status
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Remove
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {education &&
+                                  education.map((d, i) => {
+                                    return (
+                                      <tr>
+                                        <th>{i + 1}</th>
+                                        <td>{d.institute}</td>
+                                        <td>{d.degreetitle}</td>
+                                        <td>{d.start}</td>
+                                        <td>{d.end}</td>
+                                        <td>{d.status}</td>
+                                        <td>
+                                          <i
+                                            class="fa fa-trash-can"
+                                            aria-hidden="true"
+                                            style={{ color: "red" }}
+                                            onClick={() => removeitem(i)}
+                                          ></i>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                              </tbody>
+                            </Table>
+                          </Row>
+                        </Container>
+                      </div>
+                    </Row>
+                    <Row className="mb-3">
+                      <div className="py-3">
+                        <h4>Previous Employment</h4>
+                        <hr
+                          style={{
+                            fontWeight: "bold",
+                            borderWidth: "2px",
+                            border: "1px solid black",
+                          }}
+                        ></hr>
+
+                        <Container>
+                          <div className="d-flex justify-content-end">
+                            <Button
+                              onClick={() => {
+                                setShowChildModel(true);
+                              }}
+                            >
+                              Add Employement
+                            </Button>
+                          </div>
+                          <Row className="my-3">
+                            <Table striped bordered hover>
+                              <thead>
+                                <tr>
+                                  <th>#</th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Company
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Position
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    start Date
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Left Date
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    duration
+                                  </th>
+                                  <th style={{ textAlign: "center" }}>
+                                    Remove
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {employement &&
+                                  employement.map((d, i) => {
+                                    return (
+                                      <>
+                                        <tr key={i}>
+                                          <th>{i + 1}</th>
+                                          <td>{d.company}</td>
+                                          <td>{d.position}</td>
+                                          <td>{d.joiningdate}</td>
+                                          <td>{d.resignationdate}</td>
+                                          <td>{d.duration}</td>
+                                          <td>
+                                            <i
+                                              class="fa fa-trash-can"
+                                              aria-hidden="true"
+                                              style={{ color: "red" }}
+                                              onClick={() =>
+                                                removemployement(i)
+                                              }
+                                            ></i>
+                                          </td>
+                                        </tr>
+                                      </>
+                                    );
+                                  })}
+                              </tbody>
+                            </Table>
+                          </Row>
+                        </Container>
+                      </div>
+                    </Row>
+
+                    {/* </Row> */}
+                    <Row>
+                      <div className="py-3">
+                        <h4>Employement Details</h4>
+                        <hr
+                          style={{
+                            fontWeight: "bold",
+                            borderWidth: "2px",
+                            border: "1px solid black",
+                          }}
+                        ></hr>
+                      </div>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Username</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="username"
+                            placeholder="username"
+                            value={emp.username}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Password</Form.Label>
+                          <Form.Control
+                            type="password"
+                            required
+                            name="password"
+                            placeholder="password"
+                            value={emp.password}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridFirstName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Joining Date</Form.Label>
+                          <Form.Control
+                            type="date"
+                            required
+                            name="joiningdate"
+                            placeholder="joining date"
+                            value={emp.joiningdate}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Salary</Form.Label>
+                          <Form.Control
+                            type="Number"
+                            required
+                            name="currentSalary"
+                            placeholder="salary"
+                            value={emp.currentSalary}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Designation</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="designation"
+                            placeholder="designation.."
+                            value={emp.terminationreason}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridFirstName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Payment Mode</Form.Label>
+                          <Form.Select
+                            required
+                            name="paymentmode"
+                            value={emp.paymentmode}
                             onChange={handleinput}
                             //   disabled={disableFields}
                           >
                             <option value="" selected hidden disabled>
                               Please Select
                             </option>
-                            <option>Islam</option>
-                            <option>Christianity</option>
-                            <option>Buddhism</option>
-                            <option> Sikhism</option>
-                            <option> Hinduism</option>
-                            <option>Bahá’í</option>
-                            <option>Confucianism</option>
-                            <option>Jainism</option>
-                            <option>Judaism</option>
-                            <option>Zoroastrianism</option>
-                            <option>Druze</option>
+                            <option>Cheque</option>
+                            <option>Cash</option>
+                            <option>Bank Transfer</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
                     </Row>
-                  </Col>
-                  </div>
-                  <div className=" reswidth ">
-                  <Col xxl="4" xl="4" lg="4" >
-                 
-                 <div style={{ width: "100%" }}>
-                   <div className="d-flex align-items-center responsiveimg">
-                     <div>
-                     <Form className='mb-3' controlId="formGridProfilePic">
-                                
-                                   
-                                  
-                                    
-                                 <Form.Label htmlFor='uploadpic' > 
-                                     {file ? <img  className="rounded-circle" style={{ width: "200px", height: "200px" }} src={URL.createObjectURL(file)} alt="" /> : <img  className="rounded-circle" src={pp} alt="" style={{ width: "200px", height: "200px" }} />}
-                                 </Form.Label>
-                                 
-                                 
-                                 <Form.Control type="file"
-                                     name='file'
-                                     value={emp.profilepic}
-                                     style={{ display: "none" }}
-                                     id='uploadpic'
-                                     
-                                     onChange={(e) => setfile(e.target.files[0])}
-                                 />
-                                 <div className="w-100 text-center">
-                                   <label>Upload Picture</label>
-                                 </div>
-                                 
-                       </Form>
-                     </div>
-                   </div>
-                 </div>
-               </Col>
-                  </div>
-                   </div>
-                </Row>
+                    <Row>
+                      <Col lg={4}>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGriddepartments"
+                          className="formmargin"
+                        >
+                          <Form.Label>Department</Form.Label>
+                          <Form.Select
+                            onChange={handleinput}
+                            name="departments"
+                          >
+                            <option disabled selected defaultValue={""}>
+                              Select department..
+                            </option>
+                            {dep.map((d) => {
+                              return (
+                                <>
+                                  <option key={d._id} value={d._id}>
+                                    {d.departmentname}
+                                  </option>
+                                </>
+                              );
+                            })}
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col xl="4">
+                        <Form.Group
+                          as={Col}
+                          controlId="formGriddepartments"
+                          className="formmargin"
+                        >
+                          <Form.Label>Employement Status</Form.Label>
+                          <Form.Select
+                            onChange={handleinput}
+                            name="employementstatus"
+                            value={emp.employementstatus}
+                          >
+                            <option defaultValue={""} disbaled selected hidden>
+                              Select Please
+                            </option>
+                            <option>Intern</option>
+                            <option>Probation</option>
+                            <option>Permanent</option>
+                            <option>Left</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <div className="py-3">
+                        <h4>Bank Details</h4>
+                        <hr
+                          style={{
+                            fontWeight: "bold",
+                            borderWidth: "2px",
+                            border: "1px solid black",
+                          }}
+                        ></hr>
+                      </div>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Bank Name</Form.Label>
+                          <Form.Select
+                            required
+                            name="bankname"
+                            placeholder="bank name.."
+                            value={emp.bankname}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          >
+                            <option>Please Select</option>
+                            <option>MCB Limited</option>
+                            <option>Bank Islami Limited</option>
+                            <option>Allied Bank Limited</option>
+                            <option>Bank Al-Habib Limited</option>
+                            <option>Faysal Bank Limited</option>
+                            <option>Mezaan Bank Limited</option>
+                            <option>National Bank of Pakistan</option>
+                            <option>MCB Islamic Limited</option>
+                            <option>HBL</option>
+                            <option>UBL</option>
+                            <option>Askari Bank </option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Account Title</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="accounttitle"
+                            placeholder="account title.."
+                            value={emp.accounttitle}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Account No</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="accountno"
+                            placeholder="account no.."
+                            value={emp.accountno}
+                            onChange={handleinput}
+                            //   disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row className="p-0">
+                      <Col xxl={4}>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label> IBAN</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="IBAN"
+                            placeholder="iban.."
+                            value={emp.IBAN}
+                            onChange={handleinput}
+                            //  disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
 
-                <Row className="py-4">
-                  <div>
-                    <h4>Contacts Details</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                  </div>
-                  <Row>
-                    <h5
-                      className="py-2 "
-                      style={{ fontSize: "22px", padding: "0px 19px" }}
-                    >
-                      Primary
-                    </h5>
-                    <Col xxl="6" xl="6" lg="6" md="6">
-                      <Form.Group
-                        as={Col}
-                        controlId="formGridphone"
-                        className="formmargin "
-                      >
-                        <Form.Label>Phone</Form.Label>
-                        <Form.Control
-                          type="number"
-                          required
-                          name="primaryphone"
-                          placeholder="phone"
-                          value={emp.primaryphone}
-                          onChange={handleinput}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col xxl="6" xl="6" lg="6" md="6">
-                      <Form.Group
-                        as={Col}
-                        controlId="formGridcompanyemail"
-                        className="formmargin "
-                      >
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="email"
-                          required
-                          name="primaryemail"
-                          placeholder="email"
-                          value={emp.primaryemail}
-                          onChange={handleinput}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
+                      <Col xxl={4}>
+                        <Form.Group
+                          as={Col}
+                          controlId="formGridLastName"
+                          className="formmargin"
+                        >
+                          <Form.Label>Branch code</Form.Label>
+                          <Form.Control
+                            type="text"
+                            required
+                            name="branchcode"
+                            placeholder="branch code.."
+                            value={emp.branchcode}
+                            onChange={handleinput}
+                            //  disabled={disableFields}
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
 
-                  <Row>
-                    <h5
-                      className="py-2 "
-                      style={{ fontSize: "22px", padding: "0px 19px" }}
-                    >
-                      Secondary
-                    </h5>
-                    <Col xxl="6" xl="6" lg="6" md="6">
-                      <Form.Group
-                        as={Col}
-                        controlId="formGridcompanyemail"
-                        className="formmargin "
-                      >
-                        <Form.Label>Phone</Form.Label>
-                        <Form.Control
-                          type="number"
-                          required
-                          name="secondaryphone"
-                          placeholder="secondary phone"
-                          value={emp.secondaryphone}
-                          onChange={handleinput}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col xxl="6" xl="6" lg="6" md="6">
-                      <Form.Group
-                        as={Col}
-                        controlId="formGridcompanyemail"
-                        className="formmargin "
-                      >
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="email"
-                          required
-                          name="secondaryemail"
-                          placeholder="secondary Email"
-                          value={emp.secondaryemail}
-                          onChange={handleinput}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </Row>
-                <div>
-                  <h4>Address & Region</h4>
-                  <hr
-                    style={{
-                      fontWeight: "bold",
-                      borderWidth: "2px",
-                      border: "1px solid black",
-                    }}
-                  ></hr>
-                </div>
-                <Col lg={12}>
-                  <Form.Group
-                    as={Col}
-                    controlId="formGridFirstName"
-                    className="formmargin"
-                  >
-                    <Form.Label>Temporary Address</Form.Label>
-                    <Form.Control
-                      type="text"
-                      required
-                      name="temporaryaddress"
-                      placeholder="complete address"
-                      value={emp.temporaryaddress}
-                      onChange={handleinput}
-                      //   disabled={disableFields}
-                    />
+                    <div className="my-3 d-flex justify-content-center">
+                      <Button type="submit">Add Employee</Button>
+                    </div>
                   </Form.Group>
-                </Col>
-
-                <Col lg={12}>
-                  <Form.Group
-                    as={Col}
-                    controlId="formGridFirstName"
-                    className="formmargin"
-                  >
-                    <Form.Label>Permanent Address</Form.Label>
-                    <Form.Control
-                      type="text"
-                      required
-                      name="permanentaddress"
-                      placeholder="complete address"
-                      value={emp.permanentaddress}
-                      onChange={handleinput}
-                      //   disabled={disableFields}
-                    />
-                  </Form.Group>
-                </Col>
-                {/* </Row> */}
-                <Row>
-                  <Col>
-                    <Form.Label>City</Form.Label>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Select
-                        required
-                        onChange={handleinput}
-                        name="city"
-                        value={emp.city}
-                      >
-                        <option value="" selected hidden disabled>
-                          Select City
-                        </option>
-                        {cities.map((d, i) => {
-                          return <option key={i}>{d}</option>;
-                        })}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Label>Province</Form.Label>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Select
-                        required
-                        name="province"
-                        placeholder="province"
-                        value={emp.province}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      >
-                        <option value="" selected hidden disabled>
-                          Select Province
-                        </option>
-                        <option>Punjab</option>
-                        <option>Sindh</option>
-                        <option>KPK</option>
-                        <option>Gilgit Baltistan</option>
-                        <option>Islamabad(Capital Territory)</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Label>Country</Form.Label>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <ReactFlags
-                        countries={["PK"]}
-                        selected={selected}
-                        onSelect={(code) => {
-                          setSelected(code);
-                          code === "PK" && setcountry("Pakistan");
-                          setEmp({...emp,country:"Pakistan"})
-                        }}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col lg={4} xl={4}>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Postal Code</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="postalCode"
-                        placeholder="postal code"
-                        value={emp.postalCode}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <div className="py-3">
-                    <h4>Education Information</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                    
-                    <Container>
-                    <div className="d-flex justify-content-end ">
-                      <Button
-                        onClick={() => {
-                          setShowChildModel1(true);
-                        }}
-                      >
-                        Add Education
-                      </Button>
-                    </div>
-                      <Row className="my-3">
-                        <Table striped bordered hover>
-                          <thead>
-                            <tr>
-                              <th>#</th>
-                              <th style={{textAlign:"center"}}>Institute</th>
-                              <th style={{textAlign:"center"}}>Degree</th>
-                              <th style={{textAlign:"center"}}>start</th>
-                              <th style={{textAlign:"center"}}>end</th>
-                              <th style={{textAlign:"center"}}>Status</th>
-                              <th style={{textAlign:"center"}}>Remove</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {education &&
-                              education.map((d, i) => {
-                                return (
-                                 
-                                    <tr >
-                                      <th>{i+1}</th>
-                                      <td>{d.institute}</td>
-                                      <td>{d.degreetitle}</td>
-                                      <td>{d.start}</td>
-                                      <td>{d.end}</td>
-                                      <td>{d.status}</td>
-                                      <td><i class="fa fa-trash-can" aria-hidden="true" style={{color:'red'}} onClick={()=>removeitem(i)}></i></td>
-                                    </tr>
-                                 
-                                );
-                              })}
-                          </tbody>
-                        </Table>
-                      </Row>
-                    </Container>
-                  </div>
-                </Row>
-                <Row className="mb-3">
-                  <div className="py-3">
-                    <h4>Previous Employment</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                   
-                    <Container>
-                    <div className="d-flex justify-content-end">
-                      <Button
-                        onClick={() => {
-                          setShowChildModel(true);
-                        }}
-                      >
-                        Add Employement
-                      </Button>
-                    </div>
-                      <Row className="my-3">
-                      <Table striped bordered hover>
-                          <thead>
-                            <tr>
-                              <th>#</th>
-                              <th style={{textAlign:"center"}}>Company</th>
-                              <th style={{textAlign:"center"}}>Position</th>
-                              <th style={{textAlign:"center"}}>start Date</th>
-                              <th style={{textAlign:"center"}}>Left Date</th>
-                              <th style={{textAlign:"center"}}>duration</th>
-                              <th style={{textAlign:"center"}}>Remove</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {employement &&
-                              employement.map((d, i) => {
-                                return (
-                                  <>
-                                    <tr key={i}>
-                                      <th>{i+1}</th>
-                                      <td>{d.company}</td>
-                                      <td>{d.position}</td>
-                                      <td>{d.joiningdate}</td>
-                                      <td>{d.resignationdate}</td>
-                                      <td>{d.duration}</td>
-                                      <td><i class="fa fa-trash-can" aria-hidden="true" style={{color:'red'}} onClick={()=>removemployement(i)}></i></td>
-                                    </tr>
-                                  </>
-                                );
-                              })}
-                          </tbody>
-                        </Table>
-                      </Row>
-                    </Container>
-                  </div>
-                </Row>
-                {/* <Row>
-                  <div className="py-3">
-                    <h4>Previous Employment</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                  </div>
-                  <Container>
-                      <Row className="my-3">
-                        
-                      </Row>
-                    </Container>
-                  <div className="my-3 d-flex ">
-                    
-
-                    <div className="d-flex justify-content-end">
-                      <Button
-                        onClick={() => {
-                          setShowChildModel(true);
-                        }}
-                      >
-                        Add Employement
-                      </Button>
-                    </div>
-                  </div> */}
-                  {/* <Col>
-              <Form.Group
-                as={Col}
-                controlId="formGridLastName"
-                className="formmargin"
-              >
-                <Form.Label>Company</Form.Label>
-                <Form.Control
-                  type="text"
-                  required
-                  name="company"
-                  placeholder="company name.."
-                  value={emp.username}
-                  onChange={handleinput}
-                //   disabled={disableFields}
-                />
-              </Form.Group>
-            </Col>
-            <Col>
-              <Form.Group
-                as={Col}
-                controlId="formGridLastName"
-                className="formmargin"
-              >
-                <Form.Label>Position</Form.Label>
-                <Form.Control
-                  type="text"
-                  required
-                  name="position"
-                  placeholder="position.."
-                  value={emp.password}
-                  onChange={handleinput}
-                //   disabled={disableFields}
-                />
-              </Form.Group>
-            </Col>
-            <Col>
-              <Form.Group
-                as={Col}
-                controlId="formGridFirstName"
-                className="formmargin"
-              >
-                <Form.Label>Joining Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  required
-                  name="joiningdate"
-                  placeholder="joining date"
-                  value={emp.joiningdate}
-                  onChange={handleinput}
-                //   disabled={disableFields}
-                />
-              </Form.Group>
-            </Col>
-            <Col>
-              <Form.Group
-                as={Col}
-                controlId="formGridFirstName"
-                className="formmargin"
-              >
-                <Form.Label>Resignation  Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  required
-                  name="resignation date"
-                  placeholder="resignation date"
-                  value={emp.terminationdate}
-                  onChange={handleinput}
-                //   disabled={disableFields}
-                />
-              </Form.Group>
-            </Col>
-            
-          </Row> */}
-                {/* </Row> */}
-                <Row>
-                  <div className="py-3">
-                    <h4>Employement Details</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                  </div>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Username</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="username"
-                        placeholder="username"
-                        value={emp.username}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Password</Form.Label>
-                      <Form.Control
-                        type="password"
-                        required
-                        name="password"
-                        placeholder="password"
-                        value={emp.password}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridFirstName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Joining Date</Form.Label>
-                      <Form.Control
-                        type="date"
-                        required
-                        name="joiningdate"
-                        placeholder="joining date"
-                        value={emp.joiningdate}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Salary</Form.Label>
-                      <Form.Control
-                        type="Number"
-                        required
-                        name="currentSalary"
-                        placeholder="salary"
-                        value={emp.currentSalary}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Designation</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="designation"
-                        placeholder="designation.."
-                        value={emp.terminationreason}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridFirstName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Payment Mode</Form.Label>
-                      <Form.Select
-                        required
-                        name="paymentmode"
-                        value={emp.paymentmode}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      >
-                        <option value="" selected hidden disabled>
-                          Please Select
-                        </option>
-                        <option>Cheque</option>
-                        <option>Cash</option>
-                        <option>Bank Transfer</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col lg={4}>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGriddepartments"
-                      className="formmargin"
-                    >
-                      <Form.Label>Department</Form.Label>
-                      <Form.Select onChange={handleinput} name="departments">
-                        <option disabled selected defaultValue={""}>
-                          Select department..
-                        </option>
-                        {dep.map((d) => {
-                          return (
-                            <>
-                              <option key={d._id} value={d._id}>
-                                {d.departmentname}
-                              </option>
-                            </>
-                          );
-                        })}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col xl='4'>
-                  <Form.Group
-                      as={Col}
-                      controlId="formGriddepartments"
-                      className="formmargin"
-                    >
-                      <Form.Label>Employement Status</Form.Label>
-                      <Form.Select onChange={handleinput} name="employementstatus" value={emp.employementstatus}>
-                        <option defaultValue={""} disbaled selected hidden>Select Please</option>
-                        <option>Intern</option>
-                        <option>Probation</option>
-                        <option>Permanent</option>
-                        <option>Left</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row>
-                  <div className="py-3">
-                    <h4>Bank Details</h4>
-                    <hr
-                      style={{
-                        fontWeight: "bold",
-                        borderWidth: "2px",
-                        border: "1px solid black",
-                      }}
-                    ></hr>
-                  </div>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Bank Name</Form.Label>
-                      <Form.Select
-                        
-                        required
-                        name="bankname"
-                        placeholder="bank name.."
-                        value={emp.bankname}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      >
-                        <option>Please Select</option>
-                        <option>MCB Limited</option>
-                        <option>Bank Islami Limited</option>
-                        <option>Allied Bank Limited</option>
-                        <option>Bank Al-Habib Limited</option>
-                        <option>Faysal Bank Limited</option>
-                        <option>Mezaan Bank Limited</option>
-                        <option>National Bank of Pakistan</option>
-                        <option>MCB Islamic Limited</option>
-                        <option>HBL</option>
-                        <option>UBL</option>
-                        <option>Askari Bank </option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Account Title</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="accounttitle"
-                        placeholder="account title.."
-                        value={emp.accounttitle}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Account No</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="accountno"
-                        placeholder="account no.."
-                        value={emp.accountno}
-                        onChange={handleinput}
-                        //   disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="p-0">
-                  <Col xxl={4}>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label> IBAN</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="IBAN"
-                        placeholder="iban.."
-                        value={emp.IBAN}
-                        onChange={handleinput}
-                        //  disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                 
-                  <Col xxl={4}>
-                    <Form.Group
-                      as={Col}
-                      controlId="formGridLastName"
-                      className="formmargin"
-                    >
-                      <Form.Label>Branch code</Form.Label>
-                      <Form.Control
-                        type="text"
-                        required
-                        name="branchcode"
-                        placeholder="branch code.."
-                        value={emp.branchcode}
-                        onChange={handleinput}
-                        //  disabled={disableFields}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <div className="my-3 d-flex justify-content-center">
-                  <Button
-                    type="submit"
-                  >
-                    Add Employee
-                  </Button>
-                </div>
-                </Form.Group>
                 </Form>
               </Container>
-             
             </Modal.Body>
           </Modal>
         </Container>
@@ -1543,147 +1575,145 @@ const AllEmployees = () => {
           </Modal.Body>
         </Modal>
         <Modal
-                      aria-labelledby="contained-modal-title-vcenter"
-                      centered
-                      show={childModel}
-                      onHide={Closechildmodal}
-                      size="lg"
-                    >
-                      <Modal.Header closeButton>
-                        <Modal.Title
-                          id="contained-modal-title-vcenter "
-                          style={{ textAlign: "center" }}
-                        >
-                          <h5>Eployement Details</h5>
-                        </Modal.Title>
-                      </Modal.Header>
-                      <Modal.Body>
-                        <Container fluid>
-                          <Row>
-                            <div className="py-3">
-                              <h4>Previous Employment</h4>
-                              <hr
-                                style={{
-                                  fontWeight: "bold",
-                                  borderWidth: "2px",
-                                  border: "1px solid black",
-                                }}
-                              ></hr>
-                            </div>
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+          show={childModel}
+          onHide={Closechildmodal}
+          size="lg"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title
+              id="contained-modal-title-vcenter "
+              style={{ textAlign: "center" }}
+            >
+              <h5>Eployement Details</h5>
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Container fluid>
+              <Row>
+                <div className="py-3">
+                  <h4>Previous Employment</h4>
+                  <hr
+                    style={{
+                      fontWeight: "bold",
+                      borderWidth: "2px",
+                      border: "1px solid black",
+                    }}
+                  ></hr>
+                </div>
 
-                            <Col>
-                              <Form.Group
-                                as={Col}
-                                controlId="formGridempcompany"
-                                className="formmargin"
-                              >
-                                <Form.Label>Company</Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  required
-                                  name="company"
-                                  placeholder="company name.."
-                                  value={empdetails.company}
-                                  onChange={handleempinput}
-                                  //   onChange={handleinput}
-                                  //   disabled={disableFields}
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col>
-                              <Form.Group
-                                as={Col}
-                                controlId="formGridLastName"
-                                className="formmargin"
-                              >
-                                <Form.Label>Position</Form.Label>
-                                <Form.Control
-                                  type="text"
-                                  required
-                                  name="position"
-                                  placeholder="position.."
-                                  value={empdetails.position}
-                                  onChange={handleempinput}
-                                  //   disabled={disableFields}
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-                          <Row>
-                            <Col>
-                              <Form.Group
-                                as={Col}
-                                controlId="formGridFirstName"
-                                className="formmargin"
-                              >
-                                <Form.Label>Joining Date</Form.Label>
-                                <Form.Control
-                                  type="date"
-                                  required
-                                  name="joiningdate"
-                                  placeholder="joining date"
-                                  value={empdetails.joiningdate}
-                                  onChange={async (e) =>
-                                    await handleempinputJoiningDate(e)
-                                  }
-                                  //   disabled={disableFields}
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col>
-                              <Form.Group
-                                as={Col}
-                                controlId="formGridFirstName"
-                                className="formmargin"
-                              >
-                                <Form.Label>Resignation Date</Form.Label>
-                                <Form.Control
-                                  type="date"
-                                  required
-                                  name="resignationdate"
-                                  placeholder="resignation date"
-                                  value={empdetails.resignationdate}
-                                  onChange={async (e) =>
-                                    await handleempinputResignationDate(e)
-                                  }
-                                  //   disabled={disableFields}
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-                          <Row>
-                            <Form.Label>Job Description</Form.Label>
-                            <FormGroup
-                              as={Col}
-                              controlId="formGridFirstName"
-                              className="formmargin"
-                            >
-                              <Form.Control
-                                as="textarea"
-                                rows={"3"}
-                                style={{ resize: "none" }}
-                                required
-                                name="jobdescription"
-                                placeholder="Tell us about your job role & experience in previous company "
-                                value={empdetails.jobdescription}
-                                onChange={handleempinput}
-                                //   disabled={disableFields}
-                              />
-                            </FormGroup>
-                          </Row>
-                          <div className="d-flex justify-content-center my-3">
-                            <Button
-                              onClick={() => {
-                                addhistory();
-                                Closechildmodal();
-                              }}
-                            >
-                              Add Employement
-                            </Button>
-                          </div>
-                        </Container>
-                      </Modal.Body>
-                    </Modal>
+                <Col>
+                  <Form.Group
+                    as={Col}
+                    controlId="formGridempcompany"
+                    className="formmargin"
+                  >
+                    <Form.Label>Company</Form.Label>
+                    <Form.Control
+                      type="text"
+                      required
+                      name="company"
+                      placeholder="company name.."
+                      value={empdetails.company}
+                      onChange={handleempinput}
+                      //   onChange={handleinput}
+                      //   disabled={disableFields}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group
+                    as={Col}
+                    controlId="formGridLastName"
+                    className="formmargin"
+                  >
+                    <Form.Label>Position</Form.Label>
+                    <Form.Control
+                      type="text"
+                      required
+                      name="position"
+                      placeholder="position.."
+                      value={empdetails.position}
+                      onChange={handleempinput}
+                      //   disabled={disableFields}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Form.Group
+                    as={Col}
+                    controlId="formGridFirstName"
+                    className="formmargin"
+                  >
+                    <Form.Label>Joining Date</Form.Label>
+                    <Form.Control
+                      type="date"
+                      required
+                      name="joiningdate"
+                      placeholder="joining date"
+                      value={empdetails.joiningdate}
+                      onChange={async (e) => await handleempinputJoiningDate(e)}
+                      //   disabled={disableFields}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group
+                    as={Col}
+                    controlId="formGridFirstName"
+                    className="formmargin"
+                  >
+                    <Form.Label>Resignation Date</Form.Label>
+                    <Form.Control
+                      type="date"
+                      required
+                      name="resignationdate"
+                      placeholder="resignation date"
+                      value={empdetails.resignationdate}
+                      onChange={async (e) =>
+                        await handleempinputResignationDate(e)
+                      }
+                      //   disabled={disableFields}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Form.Label>Job Description</Form.Label>
+                <FormGroup
+                  as={Col}
+                  controlId="formGridFirstName"
+                  className="formmargin"
+                >
+                  <Form.Control
+                    as="textarea"
+                    rows={"3"}
+                    style={{ resize: "none" }}
+                    required
+                    name="jobdescription"
+                    placeholder="Tell us about your job role & experience in previous company "
+                    value={empdetails.jobdescription}
+                    onChange={handleempinput}
+                    //   disabled={disableFields}
+                  />
+                </FormGroup>
+              </Row>
+              <div className="d-flex justify-content-center my-3">
+                <Button
+                  onClick={() => {
+                    addhistory();
+                    Closechildmodal();
+                  }}
+                >
+                  Add Employement
+                </Button>
+              </div>
+            </Container>
+          </Modal.Body>
+        </Modal>
       </div>
     </>
   );

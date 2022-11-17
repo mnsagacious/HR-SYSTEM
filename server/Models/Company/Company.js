@@ -3,15 +3,18 @@ const CompanySchema = new mongooes.Schema({
     
     title:{
         type:String,
-        required:true
+        required:true,
+        unique:true
     },
     employees:{
         type:[mongooes.Schema.Types.ObjectId],
-        ref:'employees'
+        ref:'Employees',
+        unique:true
     },
     departments:{
         type:[mongooes.Schema.Types.ObjectId],
-        ref:'departments'
+        ref:'departments',
+        unique:true
     },
     status:{
         type:Boolean,
@@ -20,5 +23,5 @@ const CompanySchema = new mongooes.Schema({
 },{timestamps:true})
 
 
-const Company = mongooes.model("Company",CompanySchema)
+const Company = mongooes.model("Companies",CompanySchema)
 module.exports= Company;
