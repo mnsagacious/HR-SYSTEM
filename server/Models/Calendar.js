@@ -6,7 +6,10 @@ const calendarSchema = new mongoose.Schema({
         type:String,
         require:true
       },
-     
+      comapny :{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Companies'
+      },
       holidays:{
         type:[mongoose.Schema.Types.ObjectId],
         ref:'Holidays'

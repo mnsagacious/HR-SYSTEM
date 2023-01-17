@@ -3,7 +3,7 @@ import Dashboard from '../../Dashboard/Dashboard'
 const Home = () => {
   return (
     <>
-        <div className="content-wrapper">
+        <div className="content-wrapper my-2">
           {/* Content Header (Page header) */}
           <section className="content-header">
             <div className="container-fluid">

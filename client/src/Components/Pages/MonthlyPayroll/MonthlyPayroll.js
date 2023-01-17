@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { useState } from 'react';
 import { useEffect } from 'react';
-import Dashboard from '../../Dashboard/Dashboard'
+import Dashboard from '../../Dashboard/Hr Dashboard/Dashboard'
 import axios from "axios"
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';

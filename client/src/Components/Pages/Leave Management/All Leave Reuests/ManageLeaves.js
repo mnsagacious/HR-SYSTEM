@@ -24,7 +24,6 @@ import { Context } from "../../../../Context/Context";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import Report from "../report leave request/Report";
-import { useuserInformation } from "../leaveRequest/useuserinformation";
 import LeaveApplication from "./LeaveApplication";
 import PrintIcon from "@mui/icons-material/Print";
 const ManageLeaves = () => {
@@ -414,7 +413,7 @@ const ManageLeaves = () => {
   return (
     <div>
       <div
-        className="content-wrapper my-1"
+        className="content-wrapper my-2"
         style={{ backgroundColor: "#f7f7f7" }}
       >
         <section className="content-header py-3">

@@ -42,9 +42,28 @@ const Reducer  = (state,action) =>{
              case "LOGOUT":
               return{
                 user:null,
+                company:null,
+                companydata:null,
                 isFetching:false,
                 error:false
-              };  
+              };
+              case"COMPANY_SWITCH":
+              return{
+                ...state,
+                company:action.payload,
+                error:false
+              };
+              case"COMPANY_REMOVE":
+              return{
+                
+                company:null
+              }
+             case"COMPANY_DATA":
+             return{
+              ...state,
+              companydata:action.payload,
+              error:false
+             } 
           default:
           return state
         

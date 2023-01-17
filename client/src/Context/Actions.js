@@ -23,3 +23,12 @@ export const UpdateSuccess = (user) =>{
 export const UpdateFailure = () =>{
     type:"UPDATE_FAILURE"
 }
+export const CompanySwitch = (company) =>{
+    type:"COMPANY_SWITCH"
+}
+export const CompanyRemove = (company) =>{
+    type:"COMPANY_REMOVE"
+}
+export const CompanyData = (company) =>{
+  type:"COMPANY_DATA"
+}

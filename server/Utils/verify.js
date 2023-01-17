@@ -30,7 +30,7 @@ const verifyToken  =  (req,res,next) =>{
 const verifyUser = (req,res,next) => {
 
     verifyToken(req,res,next, ()=>{
-        if(req.body.id === req.params.id || req.user.isAdmin){
+        if(req.body.id === req.params.id || req.user.role){
             next();
         }else{
             next(createError(403,"Please Login "))
@@ -46,7 +46,7 @@ const verifyUser = (req,res,next) => {
 const verifyAdmin = (req,res,next) =>{
     console.log("0")
     verifyToken(req,res,next, () => {
-        if(req.user.isAdmin){
+        if(req.user.role){
             console.log("11")
             next();
         }

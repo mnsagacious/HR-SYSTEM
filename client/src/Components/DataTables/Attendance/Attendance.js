@@ -17,7 +17,7 @@ const Attendance = () => {
 
 
   const [data, setData] = useState([]);
-  const [employees, setEmployees] = useState();
+  const [employees, setEmployees] = useState([]);
   const [AttendanceToDB, setAttendanceToDB] = useState([]);
 
 
@@ -341,7 +341,7 @@ const Attendance = () => {
 
         {console.log("dataaaaaaaaaaaaaaaaaaaaaaaaaa", tableData)}
 
-        <div className="content-wrapper">
+        <div className="content-wrapper my-2">
           {/* <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">

@@ -26,6 +26,8 @@ const cycle = require('./Routes/payroll/PayCycle')
 const period = require('./Routes/payroll/PayPeriod')
 const setup = require("./Routes/payroll/setup")
 const company = require('./Routes/company')
+const ownerRoute = require('./Routes/Owners/Owners');
+const ownersAuth = require('./Routes/Owners/auth')
 env.config()
 app.use(
   cors({
@@ -84,6 +86,8 @@ app.use('/',cycle)
 app.use('/',period)
 app.use('/',setup)
 app.use('/',company)
+app.use('/owners',ownerRoute);
+app.use('/owners',ownersAuth);
 //Port settings
 const PORT = 5002;
 

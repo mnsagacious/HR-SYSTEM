@@ -13,8 +13,8 @@ import NotificationManager from "react-notifications/lib/NotificationManager";
 import 'react-time-picker/dist/TimePicker.css'
 import 'react-clock/dist/Clock.css';
 const moment = require('moment')
-const Table = ({ data }) => {
-  console.log("table props data", data);
+const Table = () => {
+  
   const [show, setshow] = useState(false);
   const [showmodal, setShowmodal] = useState(false);
   const handleClosemoal = () => setshow(false);
@@ -29,13 +29,34 @@ const Table = ({ data }) => {
   const [In, setin] = useState("");
   const [out, setout] = useState("");
   const [name, setName] = useState("");
-  const [month, setmonth] = useState("")
+  const [month, setmonth] = useState("");
+
   const monthNames = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
   const dates = monthNames[date.getMonth()]
   console.log("current month is", dates)
-
+  const [pageState,setPageState] = useState({
+    isLoading:false,
+    data:[],
+    total: 0,
+    page: 1,
+    pageSize: 10
+  })
+ 
+  useEffect(()=>{
+    const paginatedResult = async() =>{
+      try{
+            setPageState(old => ({ ...old, isLoading: true }))
+            const res = await axios.get(`/employees?page=${pageState.page}&limit=${pageState.pageSize}`);
+           res && setPageState((old)=>({...old,data:res.data.employees,isLoading:false,total:res.data.counted}))
+            console.log("counted",res.data.counted)
+      }catch(error){
+        console.log(error)
+      }
+    }
+     paginatedResult();
+  },[pageState.page, pageState.pageSize])
   const handleForm = async (e) => {
 
     e.preventDefault();
@@ -57,7 +78,7 @@ const Table = ({ data }) => {
     }
   };
   const checkInn = () => {
-    setcheckin(true);
+    setcheckin(true); 
     setin(moment(new Date().getTime()).format('h:mm:ss a'))
  }
  const checkOut = () => {
@@ -87,7 +108,8 @@ const Table = ({ data }) => {
 
 
   };
- 
+ //for pagination
+
 
   const columns = [
     { field: "id", headerName: "Sr#", width: 110 },
@@ -160,7 +182,7 @@ const Table = ({ data }) => {
     },
   ];
 
-  const rows = data.map((row) => ({
+  const rows = pageState.data.map((row) => ({
     id: row.emp_id,
     Employees: row.firstname + row.lastname,
     profilepic: row.profilepic,
@@ -171,8 +193,25 @@ const Table = ({ data }) => {
   }));
   return (
     <>
-      <div className="userList" style={{ width: "100%", height: "700px" }}>
-        <DataGrid rows={rows} columns={columns} />
+      <div className="userList" >
+       
+       <div style={{ width: "100%", height:"37.6vw" }}>
+       <DataGrid
+        rows={rows}       
+        rowCount={pageState.total}
+        loading={pageState.isLoading}
+        rowsPerPageOptions={[10, 20, 30, 50]}
+        pagination
+        page={pageState.page - 1}
+        pageSize={pageState.pageSize}
+        paginationMode="server"
+        onPageChange={(newPage) => {
+          setPageState(old => ({ ...old, page: newPage + 1 }))
+        }}
+        onPageSizeChange={(newPageSize) => setPageState(old => ({ ...old, pageSize: newPageSize }))}
+        columns={columns}
+      />
+       </div>
         <NotificationContainer />
       </div>
       <Modal

@@ -8,7 +8,16 @@ const leavesSchema = mongoose.Schema({
     description:{
         type:String,
         required:true
+    },
+    company:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Companies'
+    },
+    owner:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Owners'
     }
+   
 })
 
 const LeavesTypes = mongoose.model('Leaves',leavesSchema);

@@ -14,7 +14,7 @@ export default class Table extends Component {
 
         return (
             <div>
-                <div className="content-wrapper">
+                <div className="content-wrapper my-2">
                     {/* Content Header (Page header) */}
                     <section className="content-header">
                         <div className="container-fluid">

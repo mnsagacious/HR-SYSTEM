@@ -10,6 +10,8 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Table from './TableView/Table';
 import { get } from 'jquery';
+import { useContext } from 'react';
+import {Context} from '../../../Context/Context'
 
 const Departments = () => {
   const [getdata, setData] = useState([])
@@ -20,19 +22,18 @@ const Departments = () => {
   const handleShow = () => setShow(true);
 
   const url = '/departments/adddepartment'
-  const url1 = '/departments'
+
   const [departmentname, setdepartmentname] = useState('')
   const [description, setDescription] = useState('')
-
-
+  const{user} = useContext(Context);
+  console.log(user)
 
   const departments = async () => {
     try {
-      const dep = await axios.get(url1);
-      const res = dep.data;
-      console.log("departments", res)
-      setData(res.departments)
-
+      const res = await axios.get(`/company/${user.company}`);
+      const data = res.data.company.departments;
+      console.log("departments", data)
+      setData(data)
     } catch (error) {
       console.log(error)
     }
@@ -54,7 +55,8 @@ const Departments = () => {
 
       const save = await axios.post(url, {
         departmentname: departmentname,
-        description:description
+        description:description,
+        company:user && user.company 
       })
       console.log("dep", departmentname)
       save && NotificationManager.success("Successfully Added")
@@ -72,7 +74,7 @@ const Departments = () => {
   return (
 
     <>
-      <div className="content-wrapper " style={{ backgroundColor: "#f7f7f7" }}>
+      <div className="content-wrapper my-2 " style={{ backgroundColor: "#f7f7f7" }}>
         <section className="content-header ">
           <div className="container">
             <div className="row align-items-center">

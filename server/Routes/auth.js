@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const { createError } = require("../Utils/CreateError");
-const Employees = require("../Models/Employees");
+const {Employees} = require("../Models/employees");
 const Department = require('../Models/departments')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
+const company = require("../Models/Company/Company")
 router.post("/register", async (req, res,next) => {
   console.log("req body", req.body);
 
@@ -63,25 +63,31 @@ router.post("/register", async (req, res,next) => {
       ERCode:req.body.ERCode,
       branchcode:req.body.branchcode,
       bankname:req.body.bankname,
-      isAdmin:req.body.isAdmin
+      role:req.body.role,
+      owner:req.body.owner
     });
     console.log(req.body, "req body");
     const user = await employee.save();
     user && res.status(200).json(user);
-    try {
-      const depId = req.body.department;
-      console.log("userDepartment", depId);
-      const updateDep = await Department.findByIdAndUpdate(
-        depId,
-        {
-          $push: { employees: user._id },
-        },
-        { new: true, useFindAndModify: false }
-      );
-      console.log(updateDep);
-      //  const updateDep = await Department.employees.push(user._id)
-    } catch (error) {
-      console.log(error);
+    user && await company.findByIdAndUpdate(user.company,{
+      $push:{employees:user._id}
+    })
+    if(req.body.department){
+      try {
+        // const depId = req.body.department;
+        // console.log("userDepartment", depId);
+        const updateDep = await Department.findByIdAndUpdate(
+          user.department,
+          {
+            $push: { employees: user._id },
+          },
+          { new: true, useFindAndModify: false }
+        );
+        console.log(updateDep);
+        //  const updateDep = await Department.employees.push(user._id)
+      } catch (error) {
+        console.log(error);
+      }
     }
   } catch (err) {
     console.log(err);
@@ -100,8 +106,8 @@ router.post("/login", async (req, res, next) => {
     const user = await Employees.findOne({
       username: req.body.username,
     });
-    await user.populate('departments','departmentname')
-    await user.populate('Leaves')
+    // await user.populate('departments','departmentname')
+    // await user.populate('Leaves')
     console.log("User", user);
     if (!user) {
       return next(createError(404, "User Not found"));
@@ -116,11 +122,11 @@ router.post("/login", async (req, res, next) => {
     const token = jwt.sign(
       {
         id: user._id,
-        isAdmin: user.isAdmin,
+        role: user.role,
       },
       process.env.JWT_SECRET
     );
-    const { password, isAdmin, _id,firstname,departments } = user._doc;
+    const { password, role, _id,firstname, departments ,company,owner } = user._doc;
    
     res
       .cookie("access_Token", token, {
@@ -129,7 +135,8 @@ router.post("/login", async (req, res, next) => {
         sameSite: "none",
       })
       .status(200)
-      .json({ isAdmin, token ,id:_id,firstname:firstname,departments:departments});
+      .json({ role:role, token ,id:_id,firstname:firstname,company:company});
+      // .json({ isAdmin, token ,id:_id,firstname:firstname,departments:departments});
   } catch (error) {
     next(error);
   }

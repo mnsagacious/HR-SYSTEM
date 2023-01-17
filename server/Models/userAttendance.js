@@ -20,8 +20,11 @@ const UserAttendanceSchema = new mongoose.Schema({
      out:{
         type: String,
         default:""
-     }
-   
+     },
+   company:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'Companies'
+   }
 })
 
 

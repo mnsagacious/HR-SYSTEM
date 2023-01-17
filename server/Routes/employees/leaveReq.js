@@ -1,7 +1,7 @@
 const express = require("express")
 const LeaveRequest = require("../../Models/leaverequest")
 const router = express.Router();
-const employees = require('../../Models/Employees')
+const {Employees} = require('../../Models/employees')
 const { createError } = require('../../Utils/CreateError')
 const mongoClient = mongodb.MongoClient
 const binary = mongodb.Binary
@@ -57,9 +57,10 @@ router.post('/addrequests', async (req, res, next) => {
             status: req.body.status,
             employee: req.body.employee,
             applicationdate:req.body.applicationdate,
-            backupresourse:req.body.backupresourse
+            backupresourse:req.body.backupresourse,
+            owner:req.body.owner
         })
-        const leaverequest = await reqLeave.save()
+        const leaverequest = await reqLeave.save();
         leaverequest && res.status(200).json({ message: "Leave Request", leaverequest });
         console.log(leaverequest)
         try {
@@ -69,7 +70,7 @@ router.post('/addrequests', async (req, res, next) => {
                 next(createError(404, "user not found"))
             }
             console.log("employee", emp_id)
-            const update = await employees.findByIdAndUpdate(emp_id, {
+            const update = await Employees.findByIdAndUpdate(emp_id, {
                 $push: { Leaves: reqLeave._id }
             },
                 { new: true, useFindAndModify: false })
@@ -96,7 +97,7 @@ router.get('/:id', async (req, res, next) => {
     try {
 
         const response = await LeaveRequest.findById(req.params.id).populate('employee');
-        const emp = await employees.findById(response.employee._id).populate('departments', 'departmentname')
+        const emp = await Employees.findById(response.employee._id).populate('departments', 'departmentname')
         const dep = emp.department
         response && res.status(200).json({ message: "Success", response, dep })
 
