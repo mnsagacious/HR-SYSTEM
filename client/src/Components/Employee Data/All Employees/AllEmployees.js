@@ -432,10 +432,17 @@ const AllEmployees = () => {
               style={{ display: "flex", flexWrap: "wrap" }}
             >
               {/* list and grid view */}
+
               {/* {view
                 ? companydata && <TableView data={companydata.company && companydata.company} />
                 : user &&
                   companydata.company.map((p, i) => {
+
+              {view
+                ? datas && <TableView data={datas} />
+                : datas &&
+                  datas.map((p, i) => {
+
                     return (
                       <div
                         className="col-md-4 col-sm-6 col-12 col-lg-4 col-xl-3"
