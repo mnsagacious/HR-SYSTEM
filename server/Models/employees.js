@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const AutoIncrement = require('mongoose-sequence')(mongoose);
+const leaves = require('../Models/leaverequest')
 const EmployeesSchema = new mongoose.Schema({
    //personal info //   
    emp_id:{
@@ -112,6 +113,7 @@ const EmployeesSchema = new mongoose.Schema({
       {
         company:{
            type:String,
+            
            default:"N/A"
         },
         position:{
@@ -150,7 +152,7 @@ const EmployeesSchema = new mongoose.Schema({
 
    company:{
       type:mongoose.Schema.Types.ObjectId,
-      ref:"Company"
+      ref:"Companies"
     },
     jobtitle:{
       type:String,
@@ -161,7 +163,7 @@ const EmployeesSchema = new mongoose.Schema({
        default:"admin"
    },
     
-   departments:{
+   department:{
       type:[mongoose.Schema.Types.ObjectId],
       ref:'Departments',
       
@@ -223,18 +225,36 @@ const EmployeesSchema = new mongoose.Schema({
       type:Number,
       default:""
      },    
-    
-     isAdmin:{
-        type:Boolean,
-        default:false
+     role:{
+        type:String,
+        enum:["Employee","HR"],
+        default:'Employee'
      },
      supervisors:{
       type:[mongoose.Schema.Types.ObjectId],
       ref:'Employees',
-      unique:true
+      default:[]
+      
     },
+    supervisorStatus:{
+     type:Boolean,
+     default:false
+    },
+    owner:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'Owners'
+    }
     
 },{ timestamps: true },);
+
+EmployeesSchema.pre('findOneAndDelete',async function(next){
+   try{
+         await leaves.deleteMany({employee:this._conditions._id});
+         next();
+   }catch(error){
+      console.log(error);
+   }
+})
 // EmployeesSchema.plugin(AutoIncrement, {inc_field: 'emp_id'});
-const Employees = mongoose.model("Employees",EmployeesSchema)
-module.exports = Employees;
+const Employees = mongoose.model("Employees",EmployeesSchema) 
+module.exports = {Employees,EmployeesSchema};

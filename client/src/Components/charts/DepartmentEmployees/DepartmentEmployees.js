@@ -1,48 +1,8 @@
 import Chart from 'react-apexcharts'
 import React, { Component, useEffect,useState } from 'react';
 import axios from 'axios';
-// class Recuritment extends Component {
-  
-//     constructor(props) {
-      
-//         super(props);
-    
-//         this.state = {
-//           options: {},
-//           
-//           // labels: ['HR', 'IT', 'Accounts', 'Admin', 'Construction'],
-          
-//           departments:[]
-//         }
-        
-//       }
-//       async department(){
-//         try{
-//           const response = await axios.get("/departments")
-//           const result = response.data.departments
-//           console.log("results",result)
-//           this.setState({departments:result})
-          
-//         }catch(error){}
-//        }
-//        componentDidMount(){
-//             this.department();
-//             console.log(this.department)
-//        }
-      
-     
-//       render() {
-//         {console.log(newarray)}
-//         return (
-         
-//         );
-//       }
-// }
-
-
-
-
-
+import { useContext } from 'react';
+import {Context} from '../../../Context/Context'
 const DepartmentEmployees = () => {
   // const [options,setOptions] = useState({
   //   legend: {
@@ -51,11 +11,14 @@ const DepartmentEmployees = () => {
   //     horizontalAlign: 'center'
   //   },
   // })
+  
+  const {user} = useContext(Context);
   const [Labels,setLabels] = useState([])
   const [Series,setSeries] = useState([])
+  
    const getData = async() =>{
     try{
-           const noofemployees = await axios.get("departments/get/info");
+           const noofemployees = await axios.get(`/departments/get/info/${user.company}`);
            console.log(noofemployees);
            const Labels = []
            const Series=[];
@@ -128,7 +91,7 @@ const data = [44, 55, 41, 17, 15]
  
   return (
     <div className="donut">
-    <Chart options={options}  series={Series} type="pie" width="490" />
+    <Chart options={options}  series={Series} type="pie" width="400" />
   </div>
   )
 }

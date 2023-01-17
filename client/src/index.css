@@ -18,6 +18,7 @@ Button.btn{
      color: #FFFF;
   }
 
+
   a.btn.add-btn{
     color:#FFFF;
     /* background-color:#0099CC ; */
@@ -121,7 +122,23 @@ td{
   overflow:auto
   
  } 
-
+.dashboard{
+  height:31vh;
+  overflow: auto;
+  
+}
+.dashboard::-webkit-scrollbar {
+  width: 0.4em;
+}
+ 
+.dashboard::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+ 
+.dashboard::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+}
  #style-3::-webkit-scrollbar-track
 {
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -154,6 +171,22 @@ td{
 }
 
 #style-4::-webkit-scrollbar-thumb
+{
+  background-color: #b8b7b7;
+  /* outline: 1px solid slategrey; */
+  outline: 1px solid darkgray;
+	border-radius: 12px;
+  
+}
+
+.style-4::-webkit-scrollbar
+{
+  width: 0.6em;
+	background-color: #F5F5F5;
+
+}
+
+.style-4::-webkit-scrollbar-thumb
 {
   background-color: #b8b7b7;
   /* outline: 1px solid slategrey; */
@@ -202,3 +235,5 @@ td{
 
     }
   }
+
+

@@ -1,166 +1,112 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
 // import '../../dist/css/adminlte.min.css'
 // import 'font-awesome/css/font-awesome.min.css';
 import { useContext } from "react";
-import {Context} from "../../Context/Context"
+import { Context } from "../../Context/Context";
 import { useNavigate } from "react-router-dom";
-import { Button } from 'react-bootstrap';
+import { Button, Form } from "react-bootstrap";
+import axios from "axios";
+import Menu from './Menu'
 const Header = () => {
-  
-  const {user,dispatch} = useContext(Context)
+    
+  const { user, dispatch,companydata} = useContext(Context);
+  const [selected,setselected] = useState("")
+  const [loading,setloading] = useState(false)
+  const [title,settitle] = useState(JSON.parse(localStorage.getItem("selected company")) || "")
+  const [update,setupdate]= useState(false);
+ 
+  console.log(title,"title");
+  const getitem = () => {
+   const lastselected = JSON.parse(localStorage.getItem("selected company") || null)
+   console.log("last selected", lastselected)
+   setselected(lastselected)
+  }
 
-  const navigate = useNavigate()
 
-  const handleLogout = async () =>{
-    await dispatch({type:"LOGOUT"})
-     navigate("/")
-    }
+  useEffect(()=>{
+      title.length!="" && handleQuery();
+      const lastselected = JSON.parse(localStorage.getItem("selected company")|| null);
+      setselected(lastselected)
+      
+     
+  },[title])
+  const handleQuery = async() =>{    
+     try{
+          const query = await axios.get(`/companies/query?title=${title}`);
+          console.log('query',query);
+          await dispatch({type:"COMPANY_SWITCH",payload:query.data});
+          navigate('/dashboard');
+         if(title.length !=""){
+          return localStorage.setItem('selected company',JSON.stringify(title));
+         }
+         
+     }catch(error){
+       console.log(error);
+     }
+  }
+  // const handleCompany = async()=>{
+  //    await dispatch({type:"COMPANY_SWITCH",payload:results && results});
+  // }
+  const navigate = useNavigate();
+  console.log("headercompany",companydata)
   return (
     <>
       <div className="wrapper">
         {/* <!-- Navbar --> */}
         <nav className="main-header navbar navbar-expand navbar-white navbar-light">
           {/* <!-- Left navbar links --> */}
-          <ul className="navbar-nav">
-            <li className="nav-item">
-              <a className="nav-link" data-widget="pushmenu" href="/" role="button"><i className="fas fa-bars"></i></a>
-            </li>
-            <li className="nav-item d-none d-sm-inline-block">
-              <a href="../../index3.html" className="nav-link">Home</a>
-            </li>
-            <li className="nav-item d-none d-sm-inline-block">
-              <a href="/" className="nav-link">Contact</a>
-            </li>
-          </ul>
+          {/* <ul className="navbar-nav d-flex align-items-center">
+            <li className="nav-item ">
+              <a
+                className="nav-link"
+                data-widget="pushmenu"
+                href="/"
+                role="button"
+              >
+                <i className="fas fa-bars"></i>
+              </a>
+            </li> */}
+            
+             <li className="nav-item d-none d-sm-inline-block d-flex align-items-center justify-content-center">
+              <a className="nav-link" style={{fontWeight:'600',fontSize:'20px',color:'black'}}>
+                { companydata && companydata.title}
+              </a>
+             </li>
+           
+           
+          {/* </ul> */}
 
           {/* <!-- Right navbar links --> */}
           <ul className="navbar-nav ml-auto">
             {/* <!-- Navbar Search --> */}
-            <li className="nav-item">
-              <a className="nav-link" data-widget="navbar-search" href="/" role="button">
-                <i className="fas fa-search"></i>
-              </a>
-              <div className="navbar-search-block">
-                <form className="form-inline">
-                  <div className="input-group input-group-sm">
-                    <input className="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search" />
-                    <div className="input-group-append">
-                      <button className="btn btn-navbar" type="submit">
-                        <i className="fas fa-search"></i>
-                      </button>
-                      <button className="btn btn-navbar" type="button" data-widget="navbar-search">
-                        <i className="fas fa-times"></i>
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </li>
 
-            {/* <!-- Messages Dropdown Menu --> */}
-            <li className="nav-item dropdown">
-              <a className="nav-link" data-toggle="dropdown" href="/">
-                <i className="far fa-comments"></i>
-                <span className="badge badge-danger navbar-badge">3</span>
-              </a>
-              <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <a href="/" className="dropdown-item">
-                  {/* <!-- Message Start --> */}
-                  <div className="media">
-                    {/* <img src="../../dist/img/user1-128x128.jpg" alt="User Avatar" className="img-size-50 mr-3 img-circle"> */}
-                    <div className="media-body">
-                      <h3 className="dropdown-item-title">
-                        Brad Diesel
-                        <span className="float-right text-sm text-danger"><i className="fas fa-star"></i></span>
-                      </h3>
-                      <p className="text-sm">Call me whenever you can...</p>
-                      <p className="text-sm text-muted"><i className="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                    </div>
-                  </div>
-                  {/* <!-- Message End --> */}
-                </a>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item">
-                  {/* <!-- Message Start --> */}
-                  <div className="media">
-                    {/* <img src="../../dist/img/user8-128x128.jpg" alt="User Avatar" className="img-size-50 img-circle mr-3"> */}
-                    <div className="media-body">
-                      <h3 className="dropdown-item-title">
-                        John Pierce
-                        <span className="float-right text-sm text-muted"><i className="fas fa-star"></i></span>
-                      </h3>
-                      <p className="text-sm">I got your message bro</p>
-                      <p className="text-sm text-muted"><i className="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                    </div>
-                  </div>
-                  {/* <!-- Message End --> */}
-                </a>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item">
-                  {/* <!-- Message Start --> */}
-                  <div className="media">
-                    {/* <img src="../../dist/img/user3-128x128.jpg" alt="User Avatar" className="img-size-50 img-circle mr-3"/> */}
-                    <div className="media-body">
-                      <h3 className="dropdown-item-title">
-                        Nora Silvester
-                        <span className="float-right text-sm text-warning"><i className="fas fa-star"></i></span>
-                      </h3>
-                      <p className="text-sm">The subject goes here</p>
-                      <p className="text-sm text-muted"><i className="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                    </div>
-                  </div>
-                  {/* <!-- Message End --> */}
-                </a>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item dropdown-footer">See All Messages</a>
-              </div>
+            {
+              user.role == 'CEO' && <Form>
+              <Form.Select onChange={async(e)=>{await settitle(e.target.value); setupdate(!update)}} name='title' value={title && title} required>
+              <option disabled selected hidden value={""}>Select Company</option>
+                {user.companies.map((d, i) => {
+                  return (
+                    <>
+                      <option key={i}>{d.title}</option>
+                    </>
+                  );
+                })}
+              </Form.Select>
+            </Form>
+            }
+            <li className="px-2">
+               <Menu/>
+              {/* <Button onClick={handleLogout}>Logout</Button> */}
             </li>
-            {/* <!-- Notifications Dropdown Menu --> */}
-            <li className="nav-item dropdown">
-              <a className="nav-link" data-toggle="dropdown" href="/">
-                <i className="far fa-bell"></i>
-                <span className="badge badge-warning navbar-badge">15</span>
-              </a>
-              <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <span className="dropdown-item dropdown-header">15 Notifications</span>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item">
-                  <i className="fas fa-envelope mr-2"></i> 4 new messages
-                  <span className="float-right text-muted text-sm">3 mins</span>
-                </a>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item">
-                  <i className="fas fa-users mr-2"></i> 8 friend requests
-                  <span className="float-right text-muted text-sm">12 hours</span>
-                </a>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item">
-                  <i className="fas fa-file mr-2"></i> 3 new reports
-                  <span className="float-right text-muted text-sm">2 days</span>
-                </a>
-                <div className="dropdown-divider"></div>
-                <a href="/" className="dropdown-item dropdown-footer">See All Notifications</a>
-              </div>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" data-widget="fullscreen" href="/" role="button">
-                <i className="fas fa-expand-arrows-alt"></i>
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" data-widget="control-sidebar" data-slide="true" href="/" role="button">
-                <i className="fas fa-th-large"></i>
-              </a>
-            </li>
-            <li className="nav-item d-none d-sm-inline-block">
-              <a className="nav-link"> {user.firstname}</a>
-            </li>
-            <li><Button onClick={handleLogout}>Logout</Button></li>
           </ul>
+          {/* <div>
+            <img src={spinner} alt="spinner"/>
+          </div> */}
         </nav>
       </div>
+     
     </>
-  )
-}
+  );
+};
 
 export default Header;

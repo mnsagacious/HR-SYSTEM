@@ -23,6 +23,10 @@ const HolidaySchema = new mongooes.Schema({
          type: mongooes.Schema.Types.ObjectId, 
          ref: 'Calendar'
     },
+    comapny :{
+        type:mongooes.Schema.Types.ObjectId,
+        ref:'Companies'
+      },
     // status:{
     //     type:Boolean,
     //     required:true

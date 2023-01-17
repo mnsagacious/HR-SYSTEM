@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { Autocomplete } from "@mui/material";
 const EmpCard = ({ data  }) => {
     const navigate = useNavigate();
-    console.log("data",data)
+    console.log("data new in the props",data)
    
 
     //userStates
@@ -94,9 +94,6 @@ NotificationManager.error('Failed to update')
 
 }
   
-     
-
-
    //more option button code
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);

@@ -1,9 +1,10 @@
 
 const express = require('express')
 const router = express.Router()
-const Employees = require('../Models/Employees')
+const {Employees} = require('../Models/employees')
 const Department = require('../Models/departments')
 const {createError} = require('../Utils/CreateError')
+const company = require('../Models/Company/Company')
 //for getting All employee
 
 router.get("/", async (req, res,next) => {
@@ -16,7 +17,7 @@ router.get("/", async (req, res,next) => {
        if(!limit) limit =8;
        const skip = (page -1) *10;
 
-       const employees = await Employees.find().populate({path:'departments',select:"departmentname"}).skip(skip).limit(limit);
+       const employees = await Employees.find().populate({path:'department',select:"departmentname"}).skip(skip).limit(limit);
       // const employees = await Employees.find().populate("departments");
        const counted = await Employees.count();
       res.status(200).json({message:"Employees",Page:page,Limit:limit,employees,counted});
@@ -93,10 +94,11 @@ router.get("/autocomplete",async(req,res,next)=>{
   
   router.get("/:id", async (req, res,next) => {
     try {
-      const employee = await Employees.findById(req.params.id).populate('departments Leaves supervisors' ,"departmentname" );
+      const employee = await Employees.findById(req.params.id).populate('department',"departmentname" );
       // const employee = await Employees.findById(req.params.id).populate('departments');
-      await employee.populate('Leaves')
-      await employee.populate('supervisors')
+      // await employee.populate('Leaves')
+      // await employee.populate('supervisors')
+      await employee.populate('company department Leaves');
       console.log(employee)
       
       const { password, ...others } = employee._doc;
@@ -125,11 +127,16 @@ router.put("/:id", async (req, res, next) => {
       {
         $set: { ...reqBody },
         $push: { departments: req.body.departments },
-        $push: { supervisors: req.body.supervisors }
-
+        $push: { supervisors: req.body.supervisors },
+        
       },
       { new: true, useFindAndModify: false }
     ).populate('supervisors');
+    if(req.body.company){
+      await company.findByIdAndUpdate(req.body.company,{
+        $push:{employees:req.params.id}
+      })
+    }
     updateData && res.status(200).json({ message: "updated", updateData });
   } catch (error) {
     next(error)
@@ -145,9 +152,7 @@ router.put("/:id", async (req, res, next) => {
     try {
       const updateData = await Employees.findByIdAndUpdate(
         req.params.id,
-        // {
-        //   $set: req.body,
-        // },
+       
       
          {              
          

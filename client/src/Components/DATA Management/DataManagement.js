@@ -289,7 +289,7 @@ const DataManagement = () => {
 
   return (
     <>
-      <div className="content-wrapper" style={{ backgroundColor: "#f7f7f7" }}>
+      <div className="content-wrapper my-2" style={{ backgroundColor: "#f7f7f7" }}>
         <section className="content-header">
           <div className="container-fluid">
             <div className="row align-items-center">

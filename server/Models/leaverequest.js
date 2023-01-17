@@ -2,6 +2,10 @@ const { Binary } = require("mongodb");
 const mongoose = require("mongoose");
 
 const leaveRequestSchema = mongoose.Schema({
+    comapny :{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Companies'
+      },
     leaveType:{
         type:String,
         required:true
@@ -44,9 +48,13 @@ const leaveRequestSchema = mongoose.Schema({
     },
     attachment:{
         type:mongoose.Schema.Types.Mixed
-    }
+    },
 
- 
+   owner:{
+     type:mongoose.Schema.Types.ObjectId,
+     ref:'Owners'
+   },
+  
 
 })
 

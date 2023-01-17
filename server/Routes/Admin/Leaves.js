@@ -1,10 +1,8 @@
 const express = require("express")
 const LeaveRequest = require("../../Models/leaverequest")
 const router = express.Router();
-const Emp  = require('../../Models/Employees');
-const Employees = require("../../Models/Employees");
+const {Employees} = require("../../Models/employees");
 const mongodb = require('mongodb')
-
 
 const mongoClient = mongodb.MongoClient
 const binary = mongodb.Binary
@@ -55,18 +53,21 @@ router.post('/addrequest', async(req,res,next)=>{
             employee:req.body.employee,
             backupresourse:req.body.backupresourse,
             applicationdate:req.body.applicationdate,
-            attachment: file        
+            attachment: file,
+            company:req.body.company,
+            owner:req.body.owner
+
         })
         const saveRequest = await reqLeave.save();
         saveRequest && res.status(200).json({message:"Leave Request",saveRequest})
           try{
               const employe = req.body.employee;
-              const updatedLeaves = await Emp.findByIdAndUpdate(employe,{
+              const updatedLeaves = await Employees.findByIdAndUpdate(employe,{
                 $push:{Leaves:reqLeave._id}
               },
               {new:true,useFindAndModify:false}
               );
-              updatedLeaves && res.status(200).json({message:"Success",updatedLeaves})
+              
           }catch(error){
             next(error)
           }
@@ -117,7 +118,7 @@ router.get('/:id',async(req,res,next)=>{
     try{
         
          const response = await LeaveRequest.findById(req.params.id).populate({path:'employee backupresourse' , populate:[{path:'departments', select: ['departmentname']},{path:'Leaves'}]});
-           const emp =await Emp.findById(response.employee._id).populate('departments' ,'departmentname')
+           const emp =await Employees.findById(response.employee._id).populate('departments' ,'departmentname')
          const dep = emp.department 
           response && res.status(200).json({message:"Success",response ,dep })
 

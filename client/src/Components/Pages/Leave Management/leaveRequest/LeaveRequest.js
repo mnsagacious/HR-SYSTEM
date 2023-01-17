@@ -38,15 +38,24 @@ const LeaveRequest = () => {
   const posturl = "/leaverequest/addrequest";
   const getLeave = "leaverequest/all";
   const [depemp,setdepemp] = useState([])
-
   const [userInfo, setUserinfo] = useState({});
   const [details, setDetails] = useState([]);
   const employee = user.id;
   // console.log(employee);
+  const leavetypes = `/company/${user.company}`
   const getEmp = `/employees/${user.id}`;
   //leave with backup resource
  
-  // const [status,setstatus] = useState("Pending Aproval")
+  // const [status,setstatus] = useState("Pending Aproval");
+  const getdata = async() =>{
+    try{
+           const res = await axios.get(leavetypes);
+           console.log("leavetypes",res.data.company.LeavesTypes)
+    }catch(error){
+      console.log(error);
+      NotificationManager.error("Something went wrong")
+    }
+  }
   const componentRef = useRef();
   // const url2 =`/departments/${}`
   // console.log(url2)
@@ -101,10 +110,10 @@ const LeaveRequest = () => {
   //generating report using jspdf
     
   // define a generatePDF function that accepts a argument
-  console.log("dep",depurl)
-  const depurl = user.departments.map((d)=>d._id);
-  const depemployees = `/departments/${depurl}`
-  console.log(depemployees,"departmental employees")
+  // console.log("dep",depurl)
+  // const depurl = user.departments.map((d)=>d._id);
+  // const depemployees = `/departments/${depurl}`
+  // console.log(depemployees,"departmental employees")
   const fetchData = async () => {
     try {
       const res = await axios.get(url);
@@ -115,20 +124,20 @@ const LeaveRequest = () => {
       console.log(error);
     }
   };
-  const allemployees = async()=>{
-        try{
-             const res = await axios.get(depemployees);
-              console.log(res.data.department.employees,"recent response");
-              // const data = await res.data.department.employee
-              // data &&  setdepemp(res.data.department.employees);
-              const data = res.data.department.employees;
-              console.log("nomis data ",data);
-              setdepemp(data)
+  // const allemployees = async()=>{
+  //       try{
+  //            const res = await axios.get(depemployees);
+  //             console.log(res.data.department.employees,"recent response");
+  //             // const data = await res.data.department.employee
+  //             // data &&  setdepemp(res.data.department.employees);
+  //             const data = res.data.department.employees;
+  //             console.log("nomis data ",data);
+  //             setdepemp(data)
             
-        }catch(error){
-            console.log(error)
-        }
-  }
+  //       }catch(error){
+  //           console.log(error)
+  //       }
+  // }
   const addleaveRequest = async (event) => {
     event.preventDefault();
 
@@ -211,7 +220,8 @@ const LeaveRequest = () => {
   useEffect(() => {
     fetchData();
     userInformation();
-    allemployees();
+    // allemployees();
+    getdata();
     
   }, []);
  console.log("after setting state",depemp);
@@ -220,7 +230,7 @@ const LeaveRequest = () => {
   return (
     <>
       <div
-        className="content-wrapper my-1"
+        className="content-wrapper my-2"
         style={{ backgroundColor: "#f7f7f7" }}
       >
         <section className="content-header py-3">
